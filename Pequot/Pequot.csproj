@@ -39,8 +39,12 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="PequotServer.cs" />
+    <Compile Include="AppSettings.cs" />
+    <Compile Include="PequotServer.cs">
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializableDictionary.cs" />
+    <Compile Include="ServerThread.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

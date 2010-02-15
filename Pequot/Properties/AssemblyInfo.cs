@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Shaken Software")]
 [assembly: AssemblyProduct("Pequot")]
-[assembly: AssemblyCopyright("©2009 Shaken Software")]
+[assembly: AssemblyCopyright("©2009-2010 Shaken Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.3.9.*")]
+[assembly: AssemblyFileVersion("0.3.9.0")]

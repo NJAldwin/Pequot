@@ -5,55 +5,102 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;   
 
 namespace Pequot
 {
     class PequotServer
     {
-        static int verbosityLevel = 1;
-        private int port;
-        private string directory;
-        private string serverDirectory;
-	
+        //off, error, warning, info, verbose
+        public static TraceSwitch verbosity = new TraceSwitch("Verbosity", "Verbosity of program");
+        //default port = 80
+        public static int Port = 80;
+        public static DirectoryInfo Dir;
+        private DirectoryInfo serverDirectory;
+        public static string phpLocation;
+        public static string[] phpFiles;
+        public static string ipToListenAt = "";
+
+        public const string kDefaultSettings = "PequotConfig.xml";
+
         static void Main(string[] args)
         {
+            SetupTrace();
             //verbosity level detection code here
+            verbosity.Level = TraceLevel.Info;   //default is Info
+            //todo: eventually put log file detection code in too
+
             PequotServer server = new PequotServer();
-            verbosityLevel = 2;//detection
-            WriteLineVerbose("Pequot Server", 1);
+            Trace.WriteLine("Pequot Server " + server.GetType().Assembly.GetName().Version.ToString(3));
             server.LoadProperties();
 
             TcpListener listener = null;
             bool listening = true;
-            //check for existence of directory here
-            listener = new TcpListener(server.port);
+            //is this the best way to get the address?
+            //TODO:fix this
+            IPAddress host = IPAddress.None;
+            if (ipToListenAt.Length <= 0 || !IPAddress.TryParse(ipToListenAt, out host))
+            {
+                foreach (IPAddress ip in Dns.GetHostAddresses(Dns.GetHostName()))
+                {
+                    host = ip;
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                        break;
+                }
+            }
+            listener = new TcpListener(host, Port);
             listener.Start();
 
             if (listening)
-                WriteLineVerbose("Server listening on port " + server.port, 1);
+                Trace.WriteLine("Server listening at IP " + host.ToString() + " on port " + Port);
 
             while (listening)
             {
-                //spawning of threads goes here
-                //(if that's how it's going to work)
+                //spawn new thread when we get a connection
+                new ServerThread(listener.AcceptTcpClient()).Run();
             }
             listener.Stop();
         }
 
-        static void WriteLineVerbose(string s, int vLevel)
+        private static void SetupTrace()
         {
-            if (vLevel >= verbosityLevel)
-                Console.WriteLine(s);
+            Trace.AutoFlush = true;
+            TextWriterTraceListener consoleListener = new TextWriterTraceListener(Console.Out);
+            Trace.Listeners.Add(consoleListener);
+            //TODO: implement log file:
+            //TextWriterTraceListener fileListener = new TextWriterTraceListener(fileName);
+            //Trace.Listeners.Add(fileListener);
         }
 
         private void LoadProperties()
         {
-            serverDirectory = Directory.GetCurrentDirectory();
-            directory = Path.Combine(serverDirectory, "files");
+            //defaults
+            serverDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+            phpLocation = "";//@"C:\Program Files\PHP\php-cgi.exe";   //empty string = no php
+            //default location from install = "C:\Program Files\PHP\php-cgi.exe"
 
-            port = 89;
-                //todo: implement
-            
+            AppSettings.Load(kDefaultSettings);
+            Dir = new DirectoryInfo(AppSettings.Get("Directory", Path.Combine(serverDirectory.FullName, "files")));
+            Port = int.Parse(AppSettings.Get("Port", "80"));
+            phpLocation = AppSettings.Get("PHP Location", "");
+            phpFiles = AppSettings.Get("PHP File Extensions", ".php").Split(',');
+            ipToListenAt = AppSettings.Get("IP To Listen At", "");
+            SaveProperties();
+
+            if (!Dir.Exists)
+                Dir.Create();
+
+        }
+
+        private void SaveProperties()
+        {
+            AppSettings.Set("Directory", Dir.FullName);
+            AppSettings.Set("Port", Port.ToString());
+            AppSettings.Set("PHP Location", phpLocation);
+            AppSettings.Set("PHP File Extensions", String.Join(",", phpFiles));
+            if(ipToListenAt.Length>0)
+                AppSettings.Set("IP To Listen At", ipToListenAt);
+            AppSettings.Save();
         }
     }
 }
