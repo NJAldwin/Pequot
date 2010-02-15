@@ -323,6 +323,7 @@ namespace Pequot
                     //this is temporary.
                     //if they're just requesting a directory, give them the index file
                     fileString += "index.html";
+                    //todo:make this configurable
                     isDirectory = true;
                 }
             }
