@@ -280,7 +280,7 @@ namespace Pequot
         {
             requestType = Regex.Match(requestString, @"^(.+?)\b").Value;
             fileString = Regex.Match(requestString, @"/(.*?)(?=\s)").Value;
-            string argumentsString = Regex.Match(requestString, @"(?<=\?)(.+$)").Value;
+            string argumentsString = Regex.Match(requestString, @"(?<=\?)(.*?) HTTP/\d\.\d$").Groups[1].Value;
             fileString = Regex.Replace(fileString, @"(\?.+$)", "");
 
             Trace.WriteLineIf(PequotServer.verbosity.TraceInfo, "Client has requested: " + fileString);
@@ -298,8 +298,9 @@ namespace Pequot
                     argsArray[i, 1] = temparray[1];
                 }
                 Trace.WriteLineIf(PequotServer.verbosity.TraceInfo, "Arguments:");
-                for (int i = 0; i < argsArray.Length; i++)
-                    //                 the argument            the value
+                int len = argsArray.GetLength(0);
+                for (int i = 0; i < len; i++)
+                    //"the argument,the value"
                     Trace.WriteLineIf(PequotServer.verbosity.TraceInfo, argsArray[i, 0] + "," + argsArray[i, 1]);
             }
             else
