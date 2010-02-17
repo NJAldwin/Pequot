@@ -223,6 +223,7 @@ namespace Pequot
                     string cType = GetMimeType(requestedFile.FullName);
                     writer.WriteLine("Content-Type: " + cType);
                     Trace.WriteLineIf(PequotServer.verbosity.TraceVerbose, "Content-Type: " + cType);
+                    writer.WriteLine("Content-Length: " + requestedFile.Length);
                 }
                 else
                 {
