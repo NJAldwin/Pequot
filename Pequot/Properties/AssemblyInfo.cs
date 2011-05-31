@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Shaken Software")]
 [assembly: AssemblyProduct("Pequot")]
-[assembly: AssemblyCopyright("©2009-2010 Shaken Software")]
+[assembly: AssemblyCopyright("©2009-2011 Shaken Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
