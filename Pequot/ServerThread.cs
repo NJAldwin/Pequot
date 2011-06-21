@@ -280,7 +280,7 @@ namespace Pequot
         private void ParseRequest(string requestString)
         {
             requestType = Regex.Match(requestString, @"^(.+?)\b").Value;
-            fileString = Regex.Match(requestString, @"/(.*?)(?=\s)").Value;
+            fileString = Regex.Match(requestString, @"/(.*?)(?=\??\s)").Value;
             string argumentsString = Regex.Match(requestString, @"(?<=\?)(.*?) HTTP/\d\.\d$").Groups[1].Value;
             fileString = Regex.Replace(fileString, @"(\?.+$)", "");
 
