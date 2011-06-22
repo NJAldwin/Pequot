@@ -28,6 +28,7 @@ namespace Pequot
             SetupTrace();
             verbosity.Level = TraceLevel.Info;   //default is Info (changed on load from config file)
             //todo: eventually put in log file command-line switch detection code
+            //todo: also allow directory override via command-line switch
 
             PequotServer server = new PequotServer();
             Trace.WriteLine("Pequot Server " + server.GetType().Assembly.GetName().Version.ToString(3));

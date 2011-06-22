@@ -298,6 +298,7 @@ namespace Pequot
             }
 
             //TODO: better detection code for directory requests
+            //BUG: cannot serve files with no extension!
             //check to see if client has not requested a file (no .xxxx)
             if (!Regex.IsMatch(fileString, @"\.(.*?)$"))
             {
