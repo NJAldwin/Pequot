@@ -35,20 +35,21 @@ namespace Pequot
 
             TcpListener listener = null;
             bool listening = true;
-            //is this the best way to get the address?
-            //TODO:fix this
-            IPAddress host = IPAddress.None;
-            if (ipToListenAt.Length <= 0 || !IPAddress.TryParse(ipToListenAt, out host))
-            {
-                foreach (IPAddress ip in Dns.GetHostAddresses(Dns.GetHostName()))
-                {
-                    host = ip;
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                        break;
-                }
-            }
+
+            IPAddress host = IPAddress.Any;
+            // try parsing the address and silently fail to Any if it is invalid
+            IPAddress.TryParse(ipToListenAt, out host);
+
             listener = new TcpListener(host, Port);
-            listener.Start();
+            try
+            {
+                listener.Start();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Could not start server.  Error: " + ex.Message);
+                listening = false;
+            }
 
             if (listening)
                 Trace.WriteLine("Server listening at IP " + host.ToString() + " on port " + Port);
@@ -83,7 +84,7 @@ namespace Pequot
             Port = int.Parse(AppSettings.Get("Port", "80"));
             phpLocation = AppSettings.Get("PHP Location", "");
             phpFiles = AppSettings.Get("PHP File Extensions", ".php").Split(',');
-            ipToListenAt = AppSettings.Get("IP To Listen At", "");
+            ipToListenAt = AppSettings.Get("IP To Listen At", IPAddress.Any.ToString()); // default is Any (0.0.0.0)
             try
             {
                 verbosity.Level = (TraceLevel)TraceLevel.Parse(typeof(TraceLevel), (AppSettings.Get(verbosity.DisplayName, verbosity.Level.ToString())));
@@ -107,8 +108,7 @@ namespace Pequot
             AppSettings.Set("Port", Port.ToString());
             AppSettings.Set("PHP Location", phpLocation);
             AppSettings.Set("PHP File Extensions", String.Join(",", phpFiles));
-            if(ipToListenAt.Length>0)
-                AppSettings.Set("IP To Listen At", ipToListenAt);
+            AppSettings.Set("IP To Listen At", ipToListenAt);
             AppSettings.Set(verbosity.DisplayName, verbosity.Level.ToString());
             AppSettings.Save();
         }
