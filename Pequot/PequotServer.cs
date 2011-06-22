@@ -26,9 +26,8 @@ namespace Pequot
         static void Main(string[] args)
         {
             SetupTrace();
-            //verbosity level detection code here
-            verbosity.Level = TraceLevel.Info;   //default is Info
-            //todo: eventually put log file detection code in too
+            verbosity.Level = TraceLevel.Info;   //default is Info (changed on load from config file)
+            //todo: eventually put in log file command-line switch detection code
 
             PequotServer server = new PequotServer();
             Trace.WriteLine("Pequot Server " + server.GetType().Assembly.GetName().Version.ToString(3));
@@ -85,6 +84,16 @@ namespace Pequot
             phpLocation = AppSettings.Get("PHP Location", "");
             phpFiles = AppSettings.Get("PHP File Extensions", ".php").Split(',');
             ipToListenAt = AppSettings.Get("IP To Listen At", "");
+            try
+            {
+                verbosity.Level = (TraceLevel)TraceLevel.Parse(typeof(TraceLevel), (AppSettings.Get(verbosity.DisplayName, verbosity.Level.ToString())));
+            }
+            catch (Exception ex)
+            {
+                // Yes, it's amusing that we're writing an error about verbosity that hinges on verbosity.
+                Trace.WriteLineIf(verbosity.TraceError, "Error parsing verbosity level: " + ex.Message +
+                                  Environment.NewLine + "Defaulted to " + verbosity.Level.ToString() + ".");
+            }
             SaveProperties();
 
             if (!Dir.Exists)
@@ -100,6 +109,7 @@ namespace Pequot
             AppSettings.Set("PHP File Extensions", String.Join(",", phpFiles));
             if(ipToListenAt.Length>0)
                 AppSettings.Set("IP To Listen At", ipToListenAt);
+            AppSettings.Set(verbosity.DisplayName, verbosity.Level.ToString());
             AppSettings.Save();
         }
     }
