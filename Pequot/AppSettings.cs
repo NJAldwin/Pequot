@@ -30,7 +30,7 @@ namespace Pequot
         }
         public static void Save()
         {
-            XmlSerializer ser = new XmlSerializer(typeof(SerializableSettings));
+            var ser = new XmlSerializer(typeof(SerializableSettings));
             if (fileName == "") return;
             using (var fs = new FileStream(fileName, FileMode.Create))
             {
@@ -39,7 +39,7 @@ namespace Pequot
         }
         public static void Load(string filename)
         {
-            XmlSerializer ser = new XmlSerializer(typeof(SerializableSettings));
+            var ser = new XmlSerializer(typeof(SerializableSettings));
             if (File.Exists(filename))
             {
                 using (var fs = new FileStream(filename, FileMode.Open))
