@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using System.IO;
@@ -15,9 +13,9 @@ namespace Pequot
     {
         private Thread internalThread;
 
-        private TcpClient client = null;
+        private readonly TcpClient client = null;
         private NetworkStream stream = null;
-        private DirectoryInfo fileDirectory;	//the directory in which the files are located
+        private readonly DirectoryInfo fileDirectory;	//the directory in which the files are located
         private string fileString = "";
         private string[,] argsArray;
         private FileInfo requestedFile;
@@ -50,8 +48,7 @@ namespace Pequot
         {
             stream = client.GetStream();
             reader = new StreamReader(stream);
-            writer = new StreamWriter(stream);
-            writer.AutoFlush = true;
+            writer = new StreamWriter(stream) {AutoFlush = true};
 
             Trace.WriteLineIf(PequotServer.verbosity.TraceInfo, "New Client Connected: " + client.Client.RemoteEndPoint.ToString());
 
@@ -102,16 +99,22 @@ namespace Pequot
                 {
                     if (usingPHP)
                     {
-                        Process php = new Process();
-                        php.StartInfo = new ProcessStartInfo(PequotServer.phpLocation, "\"" + requestedFile.FullName + "\"");
-                        php.StartInfo.UseShellExecute = false;
-                        php.StartInfo.RedirectStandardOutput = true;
+                        var php = new Process
+                                      {
+                                          StartInfo =
+                                              new ProcessStartInfo(PequotServer.phpLocation,
+                                                                   "\"" + requestedFile.FullName + "\"")
+                                                  {
+                                                      UseShellExecute = false,
+                                                      RedirectStandardOutput = true
+                                                  }
+                                      };
                         php.Start();
 
                         //gah, waiting for php to complete takes so long! ~1.5sec on my machine
 
                         //we have to do binary because php isn't always text data
-                        byte[] buffer = new byte[131072];
+                        var buffer = new byte[131072];
                         int read;
                         while ((read = php.StandardOutput.BaseStream.Read(buffer, 0, buffer.Length)) > 0)
                             stream.Write(buffer, 0, read);
@@ -149,7 +152,7 @@ namespace Pequot
                     writer.WriteLine("</ul>");
 
                     writer.WriteLine("<hr>");
-                    writer.WriteLine("<address>Pequot/" + this.GetType().Assembly.GetName().Version.ToString(3) + " Port " + PequotServer.Port + "</address>");
+                    writer.WriteLine("<address>Pequot/" + GetType().Assembly.GetName().Version.ToString(3) + " Port " + PequotServer.Port + "</address>");
 
                     writer.WriteLine("</body></html>");
                 }
@@ -165,13 +168,13 @@ namespace Pequot
                     writer.WriteLine("<p>Could not find file " + fileString + "</p>");
 
                 writer.WriteLine("<hr>");
-                writer.WriteLine("<address>Pequot/" + this.GetType().Assembly.GetName().Version.ToString(3) + " Port " + PequotServer.Port + "</address>");
+                writer.WriteLine("<address>Pequot/" + GetType().Assembly.GetName().Version.ToString(3) + " Port " + PequotServer.Port + "</address>");
 
                 writer.WriteLine("</body></html>");
             }
         }
 
-        private string StatusCode(HttpStatusCode statCode)
+        private static string StatusCode(HttpStatusCode statCode)
         {
             switch (statCode)
             {
@@ -199,7 +202,7 @@ namespace Pequot
         private void OutputHeaders()
         {
             //identify ourselves
-            writer.WriteLine("Server: Pequot/" + this.GetType().Assembly.GetName().Version.ToString(3));
+            writer.WriteLine("Server: Pequot/" + GetType().Assembly.GetName().Version.ToString(3));
             //the connection will be closed, not keep-alive
             writer.WriteLine("Connection: close");
 
@@ -248,10 +251,11 @@ namespace Pequot
                 writer.WriteLine();
         }
 
-        private string GetMimeType(string fileName)
+        private static string GetMimeType(string fileName)
         {
             string mimeType = "application/unknown";
-            string ext = System.IO.Path.GetExtension(fileName).ToLower();
+            string ext = Path.GetExtension(fileName);
+            ext = ext == null ? "" : ext.ToLower();
             Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(ext);
             if (regKey != null && regKey.GetValue("Content Type") != null)
                 mimeType = regKey.GetValue("Content Type").ToString();
@@ -355,10 +359,10 @@ namespace Pequot
             if (statusCode == HttpStatusCode.Unused)
             {
                 //the code hasn't already been set
-                if (!requestedFile.Exists)
+                if (requestedFile == null || !requestedFile.Exists)
                 {
 
-                    if (!isDirectory)
+                    if (requestedFile == null || !isDirectory)
                     {
                         //the file doesn't exist so 404 Not Found
                         statusCode = HttpStatusCode.NotFound;
@@ -367,10 +371,7 @@ namespace Pequot
                     {
                         fileString = fileString.Substring(0, fileString.Length - "index.html".Length);
                         requestedFile = new FileInfo(Path.Combine(fileDirectory.FullName, Uri.UnescapeDataString(fileString).TrimStart('/').Replace("/", "\\")));
-                        if (!new DirectoryInfo(requestedFile.FullName).Exists)
-                            statusCode = HttpStatusCode.NotFound;
-                        else
-                            statusCode = HttpStatusCode.OK;
+                        statusCode = !new DirectoryInfo(requestedFile.FullName).Exists ? HttpStatusCode.NotFound : HttpStatusCode.OK;
                     }
                 }
                 else

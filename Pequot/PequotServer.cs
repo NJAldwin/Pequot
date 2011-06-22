@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -30,18 +27,18 @@ namespace Pequot
             //todo: eventually put in log file command-line switch detection code
             //todo: also allow directory override via command-line switch
 
-            PequotServer server = new PequotServer();
+            var server = new PequotServer();
             Trace.WriteLine("Pequot Server " + server.GetType().Assembly.GetName().Version.ToString(3));
             server.LoadProperties();
 
-            TcpListener listener = null;
             bool listening = true;
 
-            IPAddress host = IPAddress.Any;
+            IPAddress host;
             // try parsing the address and silently fail to Any if it is invalid
-            IPAddress.TryParse(ipToListenAt, out host);
+            if(!IPAddress.TryParse(ipToListenAt, out host))
+                host = IPAddress.Any;
 
-            listener = new TcpListener(host, Port);
+            var listener = new TcpListener(host, Port);
             try
             {
                 listener.Start();
@@ -66,10 +63,10 @@ namespace Pequot
         private static void SetupTrace()
         {
             Trace.AutoFlush = true;
-            TextWriterTraceListener consoleListener = new TextWriterTraceListener(Console.Out);
+            var consoleListener = new TextWriterTraceListener(Console.Out);
             Trace.Listeners.Add(consoleListener);
             //TODO: implement log file:
-            //TextWriterTraceListener fileListener = new TextWriterTraceListener(fileName);
+            //var fileListener = new TextWriterTraceListener(fileName);
             //Trace.Listeners.Add(fileListener);
         }
 
@@ -88,13 +85,13 @@ namespace Pequot
             ipToListenAt = AppSettings.Get("IP To Listen At", IPAddress.Any.ToString()); // default is Any (0.0.0.0)
             try
             {
-                verbosity.Level = (TraceLevel)TraceLevel.Parse(typeof(TraceLevel), (AppSettings.Get(verbosity.DisplayName, verbosity.Level.ToString())));
+                verbosity.Level = (TraceLevel)Enum.Parse(typeof(TraceLevel), (AppSettings.Get(verbosity.DisplayName, verbosity.Level.ToString())));
             }
             catch (Exception ex)
             {
                 // Yes, it's amusing that we're writing an error about verbosity that hinges on verbosity.
                 Trace.WriteLineIf(verbosity.TraceError, "Error parsing verbosity level: " + ex.Message +
-                                  Environment.NewLine + "Defaulted to " + verbosity.Level.ToString() + ".");
+                                  Environment.NewLine + "Defaulted to " + verbosity.Level + ".");
             }
             SaveProperties();
 

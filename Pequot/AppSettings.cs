@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using System.IO;
 
 namespace Pequot
@@ -35,21 +31,19 @@ namespace Pequot
         }
         public static void Save()
         {
-            XmlSerializer ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
-            if (fileName != "")
+            var ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
+            if (fileName == "") return;
+            using (var fs = new FileStream(fileName, FileMode.Create))
             {
-                using (FileStream fs = new FileStream(fileName, FileMode.Create))
-                {
-                    ser.Serialize(fs, settings);
-                }
+                ser.Serialize(fs, settings);
             }
         }
         public static void Load(string filename)
         {
-            XmlSerializer ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
+            var ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
             if (File.Exists(filename))
             {
-                using (FileStream fs = new FileStream(filename, FileMode.Open))
+                using (var fs = new FileStream(filename, FileMode.Open))
                 {
                     settings = (SerializableDictionary<string, string>)ser.Deserialize(fs);
                 }
@@ -57,7 +51,7 @@ namespace Pequot
             else
             {
                 settings = new SerializableDictionary<string, string>();
-                using (FileStream fs = new FileStream(filename, FileMode.Create))
+                using (var fs = new FileStream(filename, FileMode.Create))
                 {
                     ser.Serialize(fs, settings);
                 }
