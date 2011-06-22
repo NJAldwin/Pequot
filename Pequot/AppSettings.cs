@@ -1,12 +1,12 @@
-﻿using System.Xml.Serialization;
+﻿using System.Xml;
+using System.Xml.Serialization;
 using System.IO;
 
 namespace Pequot
 {
     internal class AppSettings
     {
-        //TODO: consider making this something else (e.g. a custom class) so that it serializes in a more human-readable format.
-        private static SerializableDictionary<string, string> settings = new SerializableDictionary<string, string>();
+        private static SerializableSettings settings = new SerializableSettings();
         private static string fileName = "";
         public static string FileName { get { return fileName; } }
 
@@ -31,7 +31,7 @@ namespace Pequot
         }
         public static void Save()
         {
-            var ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
+            var ser = new XmlSerializer(typeof(SerializableSettings));
             if (fileName == "") return;
             using (var fs = new FileStream(fileName, FileMode.Create))
             {
@@ -40,17 +40,34 @@ namespace Pequot
         }
         public static void Load(string filename)
         {
-            var ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
+            var ser = new XmlSerializer(typeof(SerializableSettings));
             if (File.Exists(filename))
             {
+                // check for old version of settings
+                var xDoc = new XmlDocument();
+                xDoc.Load(filename);
+                // old settings files started with <dictionary>.  The new root is <settings>.
+                bool oldVer = xDoc.DocumentElement != null && xDoc.DocumentElement.Name == "dictionary";
+
                 using (var fs = new FileStream(filename, FileMode.Open))
                 {
-                    settings = (SerializableDictionary<string, string>)ser.Deserialize(fs);
+                    if(oldVer)
+                    {
+                        // read from old version of settings
+                        ser = new XmlSerializer(typeof (SerializableDictionary<string, string>));
+                        settings =
+                            SerializableSettings.FromSerializableDictionary(
+                                (SerializableDictionary<string, string>) ser.Deserialize(fs));
+                    }
+                    else
+                    {
+                        settings = (SerializableSettings) ser.Deserialize(fs);
+                    }
                 }
             }
             else
             {
-                settings = new SerializableDictionary<string, string>();
+                settings = new SerializableSettings();
                 using (var fs = new FileStream(filename, FileMode.Create))
                 {
                     ser.Serialize(fs, settings);
