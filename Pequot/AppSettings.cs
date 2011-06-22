@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using System.Xml;
+using System.Xml.Serialization;
 using System.IO;
 
 namespace Pequot
@@ -42,9 +43,26 @@ namespace Pequot
             var ser = new XmlSerializer(typeof(SerializableSettings));
             if (File.Exists(filename))
             {
+                // check for old version of settings
+                var xDoc = new XmlDocument();
+                xDoc.Load(filename);
+                // old settings files started with <dictionary>.  The new root is <settings>.
+                bool oldVer = xDoc.DocumentElement != null && xDoc.DocumentElement.Name == "dictionary";
+
                 using (var fs = new FileStream(filename, FileMode.Open))
                 {
-                    settings = (SerializableSettings)ser.Deserialize(fs);
+                    if(oldVer)
+                    {
+                        // read from old version of settings
+                        ser = new XmlSerializer(typeof (SerializableDictionary<string, string>));
+                        settings =
+                            SerializableSettings.FromSerializableDictionary(
+                                (SerializableDictionary<string, string>) ser.Deserialize(fs));
+                    }
+                    else
+                    {
+                        settings = (SerializableSettings) ser.Deserialize(fs);
+                    }
                 }
             }
             else

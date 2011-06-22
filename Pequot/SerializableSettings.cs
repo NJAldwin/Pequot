@@ -59,5 +59,21 @@ namespace Pequot
             }
         }
         #endregion
+
+        /// <summary>
+        /// Creates a <see cref="SerializableSettings"/> from a SerializableDictionary&lt;string, string&gt;.  
+        /// Useful for converting from old settings files to new settings files.
+        /// </summary>
+        /// <param name="dict">The SerializableDictionary&lt;string, string&gt; to convert from.</param>
+        /// <returns>A new <see cref="SerializableSettings"/> containing all the settings from the dictionary.</returns>
+        internal static SerializableSettings FromSerializableDictionary(SerializableDictionary<string, string> dict)
+        {
+            var settings = new SerializableSettings();
+            foreach(var pair in dict)
+            {
+                settings.Add(pair.Key, pair.Value);
+            }
+            return settings;
+        }
     }
 }
