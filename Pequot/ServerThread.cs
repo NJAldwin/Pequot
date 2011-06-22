@@ -56,32 +56,35 @@ namespace Pequot
             Trace.WriteLineIf(PequotServer.verbosity.TraceInfo, "New Client Connected: " + client.Client.RemoteEndPoint.ToString());
 
             string inputLine = reader.ReadLine();
-            ParseRequest(inputLine);
-
-            Trace.WriteLineIf(PequotServer.verbosity.TraceVerbose, "Client headers:");
-            //read the client headers
-            while (!((inputLine = reader.ReadLine()).Equals(null)))
+            if (inputLine != null)
             {
-                //store the host header
-                if (inputLine.StartsWith("Host:"))
-                    host = Regex.Replace(inputLine, @"Host:\s", "");
-                //store the user-agent header
-                if (inputLine.StartsWith("User-Agent:"))
-                    userAgent = Regex.Replace(inputLine, @"User-Agent:\s", "");
-                //if there's a blank line, the client is done telling us its headers
-                if (inputLine.Equals(""))
-                    break;
-                Trace.WriteLineIf(PequotServer.verbosity.TraceVerbose, inputLine);
+                ParseRequest(inputLine);
+
+                Trace.WriteLineIf(PequotServer.verbosity.TraceVerbose, "Client headers:");
+                //read the client headers
+                while ((inputLine = reader.ReadLine()) != null)
+                {
+                    //store the host header
+                    if (inputLine.StartsWith("Host:"))
+                        host = Regex.Replace(inputLine, @"Host:\s", "");
+                    //store the user-agent header
+                    if (inputLine.StartsWith("User-Agent:"))
+                        userAgent = Regex.Replace(inputLine, @"User-Agent:\s", "");
+                    //if there's a blank line, the client is done telling us its headers
+                    if (inputLine.Equals(""))
+                        break;
+                    Trace.WriteLineIf(PequotServer.verbosity.TraceVerbose, inputLine);
+                }
+
+                //output our response line
+                OutputResponseLine();
+
+                //output headers
+                OutputHeaders();
+
+                //output file contents
+                OutputFileContents();
             }
-
-            //output our response line
-            OutputResponseLine();
-
-            //output headers
-            OutputHeaders();
-
-            //output file contents
-            OutputFileContents();
 
             stream.Close();
             client.Close();
