@@ -31,18 +31,6 @@ namespace Pequot
         private bool isPHP = false;
         private bool isDirectory = false;
 
-        /*private String fileDirectory = "";	//the directory in which the files are located
-        private String fileString = "";		//the requested file (String form)
-        private String[,] argsArray;		//a 2-dimensional array containing the arguments and their values
-        private File requestedFile = null;	//the requested file (File form)
-        private String requestType = "";	//the type of request (e.g. GET or HEAD or POST)
-        private String host = "";			//the host according to the client
-        private String userAgent = "";		//the client user agent
-        private int statusCode = 0;			//the status code - 0 means it has not yet been set
-        private Socket clientSocket = null;	//the socket through which we communicate with the client
-        private DataOutputStream dout = null;//the output to the client
-        private BufferedReader rin = null;	//the input from the client*/
-
         public ServerThread(TcpClient client)
         {
             this.client = client;
