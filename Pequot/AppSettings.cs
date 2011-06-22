@@ -38,7 +38,7 @@ namespace Pequot
             XmlSerializer ser = new XmlSerializer(typeof(SerializableDictionary<string, string>));
             if (fileName != "")
             {
-                using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
+                using (FileStream fs = new FileStream(fileName, FileMode.Create))
                 {
                     ser.Serialize(fs, settings);
                 }
